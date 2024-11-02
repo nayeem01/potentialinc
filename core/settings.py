@@ -28,6 +28,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+TIME_ZONE = "Asia/Dhaka"
+USE_TZ = True
+
 
 # Application definition
 
@@ -62,6 +65,8 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DATETIME_FORMAT": "%Y-%m-%d %H:%M:%S %Z",
+    "DEFAULT_TIMEZONE": TIME_ZONE,
 }
 
 MIDDLEWARE = [
