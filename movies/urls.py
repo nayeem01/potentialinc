@@ -1,14 +1,13 @@
-# urls.py
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import MovieViewSet, RatingViewSet
-
-router = DefaultRouter()
-router.register(r"movies", MovieViewSet)
-
-movie_rating = RatingViewSet.as_view({"post": "create", "get": "list"})
+from django.urls import path
+from .views import MovieDetailUpdateView, AllMoviesView, UserMoviesView, MovieRatingView
 
 urlpatterns = [
-    path("", include(router.urls)),
-    path("movies/<int:movie_pk>/ratings/", movie_rating, name="movie-ratings"),
+    path("allmovies/", AllMoviesView.as_view(), name="all-movies"),
+    path("movies/user/", UserMoviesView.as_view(), name="user-movies"),
+    path(
+        "movie/<int:pk>/",
+        MovieDetailUpdateView.as_view(),
+        name="update-movie-detail",
+    ),
+    path("movie/<int:movie_id>/rate/", MovieRatingView.as_view(), name="movie-rate"),
 ]

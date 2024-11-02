@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.db.models import Avg
 
-from django.db import models
-from django.contrib.auth.models import User
-from django.db.models import Avg, F, Sum
+from decimal import Decimal, ROUND_HALF_UP
 
 
 class Movie(models.Model):
@@ -12,42 +13,46 @@ class Movie(models.Model):
     released_at = models.DateField()
     duration = models.PositiveIntegerField(help_text="Duration in minutes")
     genre = models.CharField(max_length=50)
-    # created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="movies")
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="movies"
+    )
     avg_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
     total_rating = models.PositiveIntegerField(default=0)
     language = models.CharField(max_length=30)
+    created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{str(self.description)[:50]} - {self.language}"
+        return f"{self.description[:50]} - {self.language}"
 
-    def calculate_avg_rating(self):
-        """Calculate and update the avg_rating based on current ratings."""
+    def update_avg_rating(self):
+        """
+        Update avg_rating based on all associated ratings, without modifying updated_at.
+        """
         avg = self.ratings.aggregate(average=Avg("rating"))["average"] or 0
         total = self.ratings.count()
-        self.avg_rating = round(avg, 2)
-        self.total_rating = total
-        self.save(update_fields=["avg_rating", "total_rating"])
+        avg_rating_decimal = Decimal(avg).quantize(
+            Decimal("0.00"), rounding=ROUND_HALF_UP
+        )
+
+        Movie.objects.filter(pk=self.pk).update(
+            avg_rating=avg_rating_decimal, total_rating=total
+        )
 
 
 class Rating(models.Model):
     movie = models.ForeignKey(Movie, related_name="ratings", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="ratings", on_delete=models.CASCADE)
-    rating = models.PositiveSmallIntegerField(
-        choices=[(i, str(i)) for i in range(1, 6)]
-    )  # Ratings from 1 to 5
-    rated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField()
+    rated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = (
-            "movie",
-            "user",
-        )
+        unique_together = ("movie", "user")
 
     def __str__(self):
         return f"{self.user.username} rated {self.movie} - {self.rating}"
 
-    def save(self, *args, **kwargs):
-        """Override save to recalculate avg_rating after each rating is created/updated."""
-        super().save(*args, **kwargs)
-        self.movie.calculate_avg_rating()
+
+@receiver(post_save, sender=Rating)
+def update_movie_avg_rating(sender, instance, **kwargs):
+    instance.movie.update_avg_rating()

@@ -25,9 +25,18 @@ class MovieSerializer(serializers.ModelSerializer):
 
 
 class RatingSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source="user.username")
-    rating = serializers.IntegerField(min_value=1, max_value=5)
-
     class Meta:
         model = Rating
         fields = ["id", "movie", "user", "rating", "rated_at"]
+        read_only_fields = ["user", "rated_at"]
+
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("Rating must be between 1 and 5.")
+        return value
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            validated_data["user"] = request.user
+        return super().create(validated_data)
