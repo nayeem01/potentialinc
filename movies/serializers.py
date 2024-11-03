@@ -15,7 +15,6 @@ class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = [
-            "id",
             "description",
             "released_at",
             "duration",
@@ -24,8 +23,6 @@ class MovieSerializer(serializers.ModelSerializer):
             "avg_rating",
             "total_rating",
             "language",
-            "created_at",
-            "updated_at",
         ]
 
     # Convert `created_at` to Bangladesh timezone
