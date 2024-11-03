@@ -6,6 +6,7 @@ from pytz import timezone as pytz_timezone
 
 class MovieReportSerializer(serializers.ModelSerializer):
     reported_at = serializers.SerializerMethodField()
+    reported_by = serializers.CharField(source="reported_by.username", read_only=True)
 
     class Meta:
         model = MovieReport
