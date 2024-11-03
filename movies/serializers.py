@@ -9,8 +9,14 @@ class MovieSerializer(serializers.ModelSerializer):
     avg_rating = serializers.ReadOnlyField()
     total_rating = serializers.ReadOnlyField()
 
-    created_at = serializers.SerializerMethodField()
-    updated_at = serializers.SerializerMethodField()
+    # Convert `created_at` to Bangladesh timezone
+    def get_created_at(self, obj):
+        bd_timezone = pytz_timezone("Asia/Dhaka")
+        return obj.created_at.astimezone(bd_timezone).strftime("%Y-%m-%d %H:%M:%S")
+
+    def get_updated_at(self, obj):
+        bd_timezone = pytz_timezone("Asia/Dhaka")
+        return obj.updated_at.astimezone(bd_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = Movie
@@ -24,15 +30,6 @@ class MovieSerializer(serializers.ModelSerializer):
             "total_rating",
             "language",
         ]
-
-    # Convert `created_at` to Bangladesh timezone
-    def get_created_at(self, obj):
-        bd_timezone = pytz_timezone("Asia/Dhaka")
-        return obj.created_at.astimezone(bd_timezone).strftime("%Y-%m-%d %H:%M:%S")
-
-    def get_updated_at(self, obj):
-        bd_timezone = pytz_timezone("Asia/Dhaka")
-        return obj.updated_at.astimezone(bd_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
 
 class RatingSerializer(serializers.ModelSerializer):
