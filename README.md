@@ -16,6 +16,9 @@ postman documentation link - https://documenter.getpostman.com/view/32946115/2sA
 
 - Post - Create User - http://54.163.55.210/api/register/
 - Post - Login - http://54.163.55.210/api/login/
+  - { "identifier": "user2", "password": "securepassword" }
+- Post - Login with email - http://54.163.55.210/api/login/
+  - { "identifier": "user1@example.com", "password": "securepassword" }
 - Post - Create Movie - http://54.163.55.210/api/allmovies/
 - Post - Rate Movie - http://54.163.55.210/api/movie/4/rate/
 - Post - Create report - http://54.163.55.210/api/movies/4/report/
